@@ -1,277 +1,59 @@
-@Library("shared-libraries")
-import io.libs.SqlUtils
-import io.libs.ProjectHelpers
-import io.libs.Utils
-
-def sqlUtils = new SqlUtils()
-def utils = new Utils()
-def projectHelpers = new ProjectHelpers()
-def backupTasks = [:]
-def restoreTasks = [:]
-def dropDbTasks = [:]
-def createDbTasks = [:]
-def runHandlers1cTasks = [:]
-def updateDbTasks = [:]
+def BIN_CATALOG = ''
+def ACC_PROPERTIES = ''
+def ACC_BASE = ''
+def ACC_USER = ''
+def BSL_LS_PROPERTIES = ''
+def CURRENT_CATALOG = ''
+def TEMP_CATALOG = ''
+def PROJECT_NAME_EDT = ''
+def PROJECT_KEY
+def EDT_VALIDATION_RESULT = ''
+def GENERIC_ISSUE_JSON = ''
+def SRC = ''
+def PROJECT_URL = ''
 
 pipeline {
 
     parameters {
+        string(defaultValue: "${env.PROJECT_NAME}", description: '* Имя проекта. Одинаковое для EDT, проекта в АПК и в сонаре. Обычно совпадает с именем конфигурации.', name: 'PROJECT_NAME')
+        string(defaultValue: "${env.git_repo_url}", description: '* URL к гит-репозиторию, который необходимо проверить.', name: 'git_repo_url')
+        string(defaultValue: "${env.git_repo_branch}", description: 'Ветка репозитория, которую необходимо проверить. По умолчанию master', name: 'git_repo_branch')
+        string(defaultValue: "${env.sonar_catalog}", description: 'Каталог сонара, в котором лежит все, что нужно. По умолчанию C:/Sonar/', name: 'sonar_catalog')
+        string(defaultValue: "${env.PROPERTIES_CATALOG}", description: 'Каталог с настройками acc.properties, bsl-language-server.conf и sonar-project.properties. По умолчанию ./Sonar', name: 'PROPERTIES_CATALOG')
+        booleanParam(defaultValue: env.ACC_check== null ? true : env.ACC_check, description: 'Выполнять ли проверку АПК. Если нет, то будут получены существующие результаты. По умолчанию: true', name: 'ACC_check')
+        booleanParam(defaultValue: env.ACC_recreateProject== null ? false : env.ACC_recreateProject, description: 'Пересоздать проект в АПК. Все данные о проекте будут собраны заново. По умолчанию: false', name: 'ACC_recreateProject')
+        string(defaultValue: "${env.STEBI_SETTINGS}", description: 'Файл настроек для переопределения замечаний. Для файла из репо проекта должен начинатся с папки Repo, например .Repo/Sonar/settings.json. По умолчанию ./Sonar/settings.json', name: 'STEBI_SETTINGS')
         string(defaultValue: "${env.jenkinsAgent}", description: 'Нода дженкинса, на которой запускать пайплайн. По умолчанию master', name: 'jenkinsAgent')
-        string(defaultValue: "${env.server1c}", description: 'Имя сервера 1с, по умолчанию localhost', name: 'server1c')
-        string(defaultValue: "${env.server1cPort}", description: 'Порт рабочего сервера 1с. По умолчанию 1540. Не путать с портом агента кластера (1541)', name: 'server1cPort')
-        string(defaultValue: "${env.agent1cPort}", description: 'Порт агента кластера 1с. По умолчанию 1541', name: 'agent1cPort')
-        string(defaultValue: "${env.platform1c}", description: 'Версия платформы 1с, например 8.3.12.1685. По умолчанию будет использована последня версия среди установленных', name: 'platform1c')
-        string(defaultValue: "${env.serverSql}", description: 'Имя сервера MS SQL. По умолчанию localhost', name: 'serverSql')
-        string(defaultValue: "${env.admin1cUser}", description: 'Имя администратора с правом открытия вншних обработок (!) для базы тестирования 1с Должен быть одинаковым для всех баз', name: 'admin1cUser')
-        string(defaultValue: "${env.admin1cPwd}", description: 'Пароль администратора базы тестирования 1C. Должен быть одинаковым для всех баз', name: 'admin1cPwd')
-        string(defaultValue: "${env.sqlUser}", description: 'Имя администратора сервера MS SQL. Если пустой, то используется доменная  авторизация', name: 'sqlUser')
-        string(defaultValue: "${env.sqlPwd}", description: 'Пароль администратора MS SQL.  Если пустой, то используется доменная  авторизация', name: 'sqlPwd')
-        string(defaultValue: "${env.templatebases}", description: 'Список баз для тестирования через запятую. Например work_erp,work_upp', name: 'templatebases')
-        string(defaultValue: "${env.storages1cPath}", description: 'Необязательный. Пути к хранилищам 1С для обновления копий баз тестирования через запятую. Число хранилищ (если указаны), должно соответствовать числу баз тестирования. Например D:/temp/storage1c/erp,D:/temp/storage1c/upp', name: 'storages1cPath')
-        string(defaultValue: "${env.storageUser}", description: 'Необязательный. Администратор хранилищ  1C. Должен быть одинаковым для всех хранилищ', name: 'storageUser')
-        string(defaultValue: "${env.storagePwd}", description: 'Необязательный. Пароль администратора хранилищ 1c', name: 'storagePwd')
+        string(defaultValue: "${env.EDT_VERSION}", description: 'Используемая версия EDT. По умолчанию 1.13.0', name: 'EDT_VERSION')
+        string(defaultValue: "${env.perf_catalog}", description: 'Путь к каталогу с замерами производительности, на основе которых будет рассчитано покрытие. Если пусто - покрытие не считается.', name: 'perf_catalog')
+        string(defaultValue: "${env.git_credentials_Id}", description: 'ID Credentials для получения изменений из гит-репозитория', name: 'git_credentials_Id')
+        string(defaultValue: "${env.telegram_channel}", description: 'Канал в рокет-чате для отправки уведомлений', name: 'telegram_channel')
     }
-
     agent {
         label "${(env.jenkinsAgent == null || env.jenkinsAgent == 'null') ? "master" : env.jenkinsAgent}"
     }
     options {
-        timeout(time: 8, unit: 'HOURS') 
-        buildDiscarder(logRotator(numToKeepStr:'10'))
+        timeout(time: 8, unit: 'HOURS')
+        buildDiscarder(logRotator(numToKeepStr: '10'))
     }
     stages {
-        stage("Подготовка") {
+        stage("Инициализация переменных") {
             steps {
                 timestamps {
                     script {
-                        templatebasesList = utils.lineToArray(templatebases.toLowerCase())
-                        storages1cPathList = utils.lineToArray(storages1cPath.toLowerCase())
 
-                        if (storages1cPathList.size() != 0) {
-                            assert storages1cPathList.size() == templatebasesList.size()
-                        }
+                        telegram_channel = telegram_channel == null || telegram_channel == 'null' ? '' : telegram_channel
 
-                        server1c = server1c.isEmpty() ? "localhost" : server1c
-                        serverSql = serverSql.isEmpty() ? "localhost" : serverSql
-                        server1cPort = server1cPort.isEmpty() ? "1540" : server1cPort
-                        agent1cPort = agent1cPort.isEmpty() ? "1541" : agent1cPort
-                        env.sqlUser = sqlUser.isEmpty() ? "sa" : sqlUser
-                        testbase = null
-
-                        // создаем пустые каталоги
-                        dir ('build') {
-                            writeFile file:'dummy', text:''
+                        if (!telegram_channel.isEmpty() ) {
+                            telegramSend(message: 'Sonar check started: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL})', chatId: -1001247906636)
                         }
                     }
                 }
             }
         }
-        stage("Запуск") {
-            steps {
-                timestamps {
-                    script {
-
-                        for (i = 0;  i < templatebasesList.size(); i++) {
-                            templateDb = templatebasesList[i]
-                            storage1cPath = storages1cPathList[i]
-                            testbase = "test_${templateDb}"
-                            testbaseConnString = projectHelpers.getConnString(server1c, testbase, agent1cPort)
-                            backupPath = "${env.WORKSPACE}/build/temp_${templateDb}_${utils.currentDateStamp()}"
-
-                            // 1. Удаляем тестовую базу из кластера (если он там была) и очищаем клиентский кеш 1с
-                            dropDbTasks["dropDbTask_${testbase}"] = dropDbTask(
-                                server1c, 
-                                server1cPort, 
-                                serverSql, 
-                                testbase, 
-                                admin1cUser, 
-                                admin1cPwd,
-                                sqluser,
-                                sqlPwd
-                            )
-                            // 2. Делаем sql бекап эталонной базы, которую будем загружать в тестовую базу
-                            backupTasks["backupTask_${templateDb}"] = backupTask(
-                                serverSql, 
-                                templateDb, 
-                                backupPath,
-                                sqlUser,
-                                sqlPwd
-                            )
-                            // 3. Загружаем sql бекап эталонной базы в тестовую
-                            restoreTasks["restoreTask_${testbase}"] = restoreTask(
-                                serverSql, 
-                                testbase, 
-                                backupPath,
-                                sqlUser,
-                                sqlPwd
-                            )
-                            // 4. Создаем тестовую базу кластере 1С
-                            createDbTasks["createDbTask_${testbase}"] = createDbTask(
-                                "${server1c}:${agent1cPort}",
-                                serverSql,
-                                platform1c,
-                                testbase
-                            )
-                            // 5. Обновляем тестовую базу из хранилища 1С (если применимо)
-                            updateDbTasks["updateTask_${testbase}"] = updateDbTask(
-                                platform1c,
-                                testbase, 
-                                storage1cPath, 
-                                storageUser, 
-                                storagePwd, 
-                                testbaseConnString, 
-                                admin1cUser, 
-                                admin1cPwd
-                            )
-                            // 6. Запускаем внешнюю обработку 1С, которая очищает базу от всплывающего окна с тем, что база перемещена при старте 1С
-                            runHandlers1cTasks["runHandlers1cTask_${testbase}"] = runHandlers1cTask(
-                                testbase, 
-                                admin1cUser, 
-                                admin1cPwd,
-                                testbaseConnString
-                            )
-                        }
-
-                        parallel dropDbTasks
-                        parallel backupTasks
-                        parallel restoreTasks
-                        parallel createDbTasks
-                        parallel updateDbTasks
-                        parallel runHandlers1cTasks
-                    }
-                }
-            }
-        }
-        stage("Тестирование ADD") {
-            steps {
-                timestamps {
-                    script {
-
-                        if (templatebasesList.size() == 0) {
-                            return
-                        }
-
-                        platform1cLine = ""
-                        if (platform1c != null && !platform1c.isEmpty()) {
-                            platform1cLine = "--v8version ${platform1c}"
-                        }
-
-                        admin1cUsrLine = ""
-                        if (admin1cUser != null && !admin1cUser.isEmpty()) {
-                            admin1cUsrLine = "--db-user ${admin1cUser}"
-                        }
-
-                        admin1cPwdLine = ""
-                        if (admin1cPwd != null && !admin1cPwd.isEmpty()) {
-                            admin1cPwdLine = "--db-pwd ${admin1cPwd}"
-                        }
-                        // Запускаем ADD тестирование на произвольной базе, сохранившейся в переменной testbaseConnString
-                        returnCode = utils.cmd("runner vanessa --settings tools/vrunner.json ${platform1cLine} --ibconnection \"${testbaseConnString}\" ${admin1cUsrLine} ${admin1cPwdLine} --pathvanessa tools/add/bddRunner.epf")
-
-                        if (returnCode != 0) {
-                            utils.raiseError("Возникла ошибка при запуске ADD на сервере ${server1c} и базе ${testbase}")
-                        }
-                    }
-                }
-            }
-        }
-    }   
-    post {
-        always {
-            script {
-                if (currentBuild.result == "ABORTED") {
-                    return
-                }
-
-                dir ('build/out/allure') {
-                    writeFile file:'environment.properties', text:"Build=${env.BUILD_URL}"
-                }
-
-                allure includeProperties: false, jdk: '', results: [[path: 'build/out/allure']]
-            }
-        }
     }
 }
-
-
-def dropDbTask(server1c, server1cPort, serverSql, infobase, admin1cUser, admin1cPwd, sqluser, sqlPwd) {
-    return {
-        timestamps {
-            stage("Удаление ${infobase}") {
-                def projectHelpers = new ProjectHelpers()
-                def utils = new Utils()
-
-                projectHelpers.dropDb(server1c, server1cPort, serverSql, infobase, admin1cUser, admin1cPwd, sqluser, sqlPwd)
-            }
-        }
-    }
-}
-
-def createDbTask(server1c, serverSql, platform1c, infobase) {
-    return {
-        stage("Создание базы ${infobase}") {
-            timestamps {
-                def projectHelpers = new ProjectHelpers()
-                try {
-                    projectHelpers.createDb(platform1c, server1c, serversql, infobase, null, false)
-                } catch (excp) {
-                    echo "Error happened when creating base ${infobase}. Probably base already exists in the ibases.v8i list. Skip the error"
-                }
-            }
-        }
-    }
-}
-
-def backupTask(serverSql, infobase, backupPath, sqlUser, sqlPwd) {
-    return {
-        stage("sql бекап ${infobase}") {
-            timestamps {
-                def sqlUtils = new SqlUtils()
-
-                sqlUtils.checkDb(serverSql, infobase, sqlUser, sqlPwd)
-                sqlUtils.backupDb(serverSql, infobase, backupPath, sqlUser, sqlPwd)
-            }
-        }
-    }
-}
-
-def restoreTask(serverSql, infobase, backupPath, sqlUser, sqlPwd) {
-    return {
-        stage("Востановление ${infobase} бекапа") {
-            timestamps {
-                sqlUtils = new SqlUtils()
-
-                sqlUtils.createEmptyDb(serverSql, infobase, sqlUser, sqlPwd)
-                sqlUtils.restoreDb(serverSql, infobase, backupPath, sqlUser, sqlPwd)
-            }
-        }
-    }
-}
-
-def runHandlers1cTask(infobase, admin1cUser, admin1cPwd, testbaseConnString) {
-    return {
-        stage("Запуск 1с обработки на ${infobase}") {
-            timestamps {
-                def projectHelpers = new ProjectHelpers()
-                projectHelpers.unlocking1cBase(testbaseConnString, admin1cUser, admin1cPwd)
-            }
-        }
-    }
-}
-
-def updateDbTask(platform1c, infobase, storage1cPath, storageUser, storagePwd, connString, admin1cUser, admin1cPwd) {
-    return {
-        stage("Загрузка из хранилища ${infobase}") {
-            timestamps {
-                prHelpers = new ProjectHelpers()
-
-                if (storage1cPath == null || storage1cPath.isEmpty()) {
-                    return
-                }
-
-                prHelpers.loadCfgFrom1CStorage(storage1cPath, storageUser, storagePwd, connString, admin1cUser, admin1cPwd, platform1c)
-                prHelpers.updateInfobase(connString, admin1cUser, admin1cPwd, platform1c)
-            }
-        }
-    }
+def cmd(command) {
+    // при запуске Jenkins не в режиме UTF-8 нужно написать chcp 1251 вместо chcp 65001
+    if (isUnix()) { sh "${command}" } else { bat "chcp 65001\n${command}" }
 }
