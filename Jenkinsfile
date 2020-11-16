@@ -45,7 +45,7 @@ pipeline {
                         telegram_channel = telegram_channel == null || telegram_channel == 'null' ? '' : telegram_channel
 
                         if (!telegram_channel.isEmpty() ) {
-                            telegramSend(message: 'Sonar check started: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL})', chatId: -1001247906636)
+                            telegramSend(message: "Sonar check started: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL})", chatId: -1001247906636)
                         }
                     }
                 }
