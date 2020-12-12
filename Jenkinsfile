@@ -46,7 +46,7 @@ pipeline {
 
                         if (!telegram_channel.isEmpty() ) {
                             telegramSend(message: "Sonar check started: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL})", chatId: -1001247906636)
-                        }
+                        } else {telegramSend(message: "Sonar check started 2: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL})", chatId: -1001247906636)}
                     }
                 }
             }
