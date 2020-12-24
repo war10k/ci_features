@@ -56,7 +56,7 @@ pipeline {
                     CURRENT_CATALOG = "${CURRENT_CATALOG}\\Repo"
                     PROJECT_NAME_EDT = "${CURRENT_CATALOG}\\${PROJECT_NAME}"
                     PLATFORM_1C = "C:\\Program Files\\1cv8\\${platfor1c}\\bin\\1cv8.exe"
-                    NIGHT_BUILD_CATALOG = "O:\\Отдел 1С\\Управление карьером\\ПОСТАВКИ\\ГДП ОУ\\_NightBuild"
+                    NIGHT_BUILD_CATALOG = "O:\\Отдел 1С\\Управление карьером\\ПОСТАВКИ\\ГДП ОУ\\_NightBuild\\1Cv8.cf"
 
                     if (!telegram_channel.isEmpty() ) {
                         telegramSend(message: "Sonar check started: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL})", chatId: -1001247906636)
