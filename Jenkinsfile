@@ -85,7 +85,7 @@ pipeline {
                 }
             }
         }
-        stage('EDT') {
+        /*stage('EDT') {
             steps {
                 script {
                     if (fileExists("${EDT_VALIDATION_RESULT}")) {
@@ -97,12 +97,11 @@ pipeline {
                     """)
                 }
             }
-        }
+        }*/
         stage('EDT to XML') {
             steps {
                 script {
                     cmd("""
-                    @set RING_OPTS=-Dfile.encoding=UTF-8 -Dosgi.nl=ru
                     ring edt@${EDT_VERSION} workspace export --workspace-location \"${TEMP_CATALOG}\" --configuration-files \"${PROJECT_XML_CATALOG}\" --project \"${PROJECT_NAME_EDT}\"
                     """)
                 }
