@@ -125,5 +125,5 @@ pipeline {
 
 def cmd(command) {
     // при запуске Jenkins не в режиме UTF-8 нужно написать chcp 1251 вместо chcp 65001
-    if (isUnix()) { sh "${command}" } else { bat "chcp 65001\n${command}" }
+    if (isUnix()) { sh "${command}" } else { bat "${command}" }
 }
