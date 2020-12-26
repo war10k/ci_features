@@ -92,7 +92,6 @@ pipeline {
                         cmd("@DEL \"${EDT_VALIDATION_RESULT}\"")
                     }
                     cmd("""
-                    chcp 65001
                     @set RING_OPTS=-Dfile.encoding=UTF-8 -Dosgi.nl=ru
                     ring edt@${EDT_VERSION} workspace validate --workspace-location \"${TEMP_CATALOG}\" --file \"${EDT_VALIDATION_RESULT}\" --project-list \"${PROJECT_NAME_EDT}\"
                     """)
@@ -103,7 +102,6 @@ pipeline {
             steps {
                 script {
                     cmd("""
-                    chcp 65001
                     @set RING_OPTS=-Dfile.encoding=UTF-8 -Dosgi.nl=ru
                     ring edt@${EDT_VERSION} workspace export --workspace-location \"${TEMP_CATALOG}\" --configuration-files \"${PROJECT_XML_CATALOG}\" --project \"${PROJECT_NAME_EDT}\"
                     """)
@@ -127,5 +125,5 @@ pipeline {
 
 def cmd(command) {
     // при запуске Jenkins не в режиме UTF-8 нужно написать chcp 1251 вместо chcp 65001
-    if (isUnix()) { sh "${command}" } else { bat "${command}" }
+    if (isUnix()) { sh "${command}" } else { bat "chcp 65001\n${command}" }
 }
