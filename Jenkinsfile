@@ -91,10 +91,10 @@ pipeline {
                     if (fileExists("${EDT_VALIDATION_RESULT}")) {
                         cmd("@DEL \"${EDT_VALIDATION_RESULT}\"")
                     }
-                    cmd("""
+                    /*cmd("""
                     @set RING_OPTS=-Dfile.encoding=UTF-8 -Dosgi.nl=ru
                     ring edt@${EDT_VERSION} workspace validate --workspace-location \"${TEMP_CATALOG}\" --file \"${EDT_VALIDATION_RESULT}\" --project-list \"${PROJECT_NAME_EDT}\"
-                    """)
+                    """)*/
                 }
             }
         }
@@ -113,9 +113,10 @@ pipeline {
             steps {
                 script {
                     cmd("""
+                    echo \"${PLATFORM_1C}\"
                     \"${PLATFORM_1C}\" CREATEINFOBASE File=\"${PROJECT_IB_CATALOG}\" /DumpResult \"${TEMP_CATALOG}\\log.txt\"
                     \"${PLATFORM_1C}\" DESIGNER /F \"${PROJECT_IB_CATALOG}\" /LoadConfigFromFiles \"${PROJECT_XML_CATALOG} /UpdateDBCfg /DisableStartupDialogs /DumpResult \"${TEMP_CATALOG}\\log.txt\"
-                    \"${PLATFORM_1C}\" DESIGNER /F \"${PROJECT_IB_CATALOG}\" /CreateDistributionFiles -cffile \"${NIGHT_BUILD_CATALOG} /DisableStartupDialogs /DumpResult \"${TEMP_CATALOG}\\log.txt\"
+                    \"${PLATFORM_1C}\" DESIGNER /F \"${PROJECT_IB_CATALOG}\" /CreateDistributionFiles -cffile \"${NIGHT_BUILD_CATALOG}\" /DisableStartupDialogs /DumpResult \"${TEMP_CATALOG}\\log.txt\"
                     """)
                 }
             }
