@@ -112,12 +112,9 @@ pipeline {
         stage('Создание файла поставки') {
             steps {
                 script {
-                    cmd("""
-                    echo \"${PLATFORM_1C}\"
-                    \"${PLATFORM_1C}\" CREATEINFOBASE File=\"${PROJECT_IB_CATALOG}\" /DumpResult \"${TEMP_CATALOG}\\log.txt\"
-                    \"${PLATFORM_1C}\" DESIGNER /F \"${PROJECT_IB_CATALOG}\" /LoadConfigFromFiles \"${PROJECT_XML_CATALOG} /UpdateDBCfg /DisableStartupDialogs /DumpResult \"${TEMP_CATALOG}\\log.txt\"
-                    \"${PLATFORM_1C}\" DESIGNER /F \"${PROJECT_IB_CATALOG}\" /CreateDistributionFiles -cffile \"${NIGHT_BUILD_CATALOG}\" /DisableStartupDialogs /DumpResult \"${TEMP_CATALOG}\\log.txt\"
-                    """)
+                    cmd("\"${PLATFORM_1C}\" CREATEINFOBASE File=\"${PROJECT_IB_CATALOG}\" /DumpResult \"${TEMP_CATALOG}\\log.txt\"")
+                    cmd("\"${PLATFORM_1C}\" DESIGNER /F \"${PROJECT_IB_CATALOG}\" /LoadConfigFromFiles \"${PROJECT_XML_CATALOG} /UpdateDBCfg /DisableStartupDialogs /DumpResult \"${TEMP_CATALOG}\\log.txt\"")
+                    cmd("\"${PLATFORM_1C}\" DESIGNER /F \"${PROJECT_IB_CATALOG}\" /CreateDistributionFiles -cffile \"${NIGHT_BUILD_CATALOG}\" /DisableStartupDialogs /DumpResult \"${TEMP_CATALOG}\\log.txt\"")
                 }
             }
         }
