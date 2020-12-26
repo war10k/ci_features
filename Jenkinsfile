@@ -91,10 +91,7 @@ pipeline {
                     if (fileExists("${EDT_VALIDATION_RESULT}")) {
                         cmd("@DEL \"${EDT_VALIDATION_RESULT}\"")
                     }
-                    cmd("""
-                    @set RING_OPTS=-Dfile.encoding=UTF-8 -Dosgi.nl=ru
-                    ring edt@${EDT_VERSION} workspace validate --workspace-location \"${TEMP_CATALOG}\" --file \"${EDT_VALIDATION_RESULT}\" --project-list \"${PROJECT_NAME_EDT}\"
-                    """)
+                    cmd("ring edt@${EDT_VERSION} workspace validate --workspace-location \"${TEMP_CATALOG}\" --file \"${EDT_VALIDATION_RESULT}\" --project-list \"${PROJECT_NAME_EDT}\"")
                 }
             }
         }
