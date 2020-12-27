@@ -118,8 +118,7 @@ pipeline {
                 
 
                     if (!telegram_channel.isEmpty() ) {
-                        def qg = waitForQualityGate()
-                        telegramSend(message: "Jenkins build started: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL}) STATUS: [${qg.status}]", chatId: -1001247906636)
+                        telegramSend(message: "Jenkins build started: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL}) STATUS: [${currentBuild.result}]", chatId: -1001247906636)
                     }
                 }
             }
