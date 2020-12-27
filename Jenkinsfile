@@ -59,8 +59,8 @@ pipeline {
                     NIGHT_BUILD_CATALOG = "O:\\Отдел 1С\\Управление карьером\\ПОСТАВКИ\\ГДП ОУ\\_NightBuild\\1Cv8.cf"
 
                     if (!telegram_channel.isEmpty() ) {
-                        telegramSend(message: "Sonar check started: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL})", chatId: -1001247906636)
-                    } else {telegramSend(message: "Sonar check started 2: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL})", chatId: -1001247906636)}
+                        telegramSend(message: "Jenkins build started: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL})", chatId: -1001247906636)
+                    } else {telegramSend(message: "Jenkins build started 2: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL})", chatId: -1001247906636)}
 
                     dir('IB') {
                         deleteDir()
@@ -115,6 +115,20 @@ pipeline {
                     cmd("\"${PLATFORM_1C}\" CREATEINFOBASE File=\"${PROJECT_IB_CATALOG}\" /DumpResult \"${TEMP_CATALOG}\\log.txt\"")
                     cmd("\"${PLATFORM_1C}\" DESIGNER /F \"${PROJECT_IB_CATALOG}\" /LoadConfigFromFiles \"${PROJECT_XML_CATALOG}\" /UpdateDBCfg /DisableStartupDialogs /DumpResult \"${TEMP_CATALOG}\\log.txt\"")
                     cmd("\"${PLATFORM_1C}\" DESIGNER /F \"${PROJECT_IB_CATALOG}\" /CreateDistributionFiles -cffile \"${NIGHT_BUILD_CATALOG}\" /DisableStartupDialogs /DumpResult \"${TEMP_CATALOG}\\log.txt\"")
+                }
+
+                if (!telegram_channel.isEmpty() ) {
+                        def qg = waitForQualityGate()
+                        telegramSend(message: "Jenkins build started: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL}) STATUS: [${qg.status}]", chatId: -1001247906636)
+                }
+            }
+        }
+    }
+    post {
+        always {
+            script {
+                dir ('temp') {
+                    deleteDir()
                 }
             }
         }
