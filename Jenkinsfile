@@ -118,7 +118,7 @@ pipeline {
                 
 
                     if (!telegram_channel.isEmpty() ) {
-                        telegramSend(message: "Jenkins build started: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL}) STATUS: [${currentBuild.result}]", chatId: -1001247906636)
+                        telegramSend(message: "Jenkins build end: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL}) STATUS: [${currentBuild.result}]", chatId: -1001247906636)
                     }
                 }
             }
