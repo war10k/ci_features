@@ -46,7 +46,7 @@ pipeline {
                 script {
 
                     telegram_channel = telegram_channel == null || telegram_channel == 'null' ? '' : telegram_channel
-                    platfor1c = platfor1c.isEmpty() ? "8.3.17.1851" : platfor1c
+                    platfor1c = platfor1c.isEmpty() ? "8.3.18.1334" : platfor1c
 
                     CURRENT_CATALOG = pwd()
                     TEMP_CATALOG = "${CURRENT_CATALOG}\\temp"
@@ -56,7 +56,12 @@ pipeline {
                     CURRENT_CATALOG = "${CURRENT_CATALOG}\\Repo"
                     PROJECT_NAME_EDT = "${CURRENT_CATALOG}\\${PROJECT_NAME}"
                     PLATFORM_1C = "C:\\Program Files\\1cv8\\${platfor1c}\\bin\\1cv8.exe"
-                    NIGHT_BUILD_CATALOG = "O:\\Отдел 1С\\Управление карьером\\ПОСТАВКИ\\ГДП ОУ\\_NightBuild\\1Cv8.cf"
+                    NIGHT_BUILD_CATALOG = "S:\\ГДП ОУ\\_NightBuild\\1Cv8.cf"
+                    ADD = "C:\\CI\\add-6.7"
+                    SMOKE_TEST_JSON = "${ADD}\\tests\\smoke\\smoke.bsp.json"
+                    SMOKE_TEST_REPORT = "${TEMP_CATALOG}\\Reports\\resultopenform.xlsx"
+                    SMOKE_TEST = "${ADD}\\tests\\smoke"
+                    TEST_RUNNNER = "${ADD}\\xddTestRunner.epf"
 
                     if (!telegram_channel.isEmpty() ) {
                         telegramSend(message: "Jenkins build started: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL})", chatId: -1001247906636)
@@ -120,6 +125,14 @@ pipeline {
                     if (!telegram_channel.isEmpty() ) {
                         telegramSend(message: "Jenkins build end: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL}) STATUS: [${currentBuild.result}]", chatId: -1001247906636)
                     }
+                }
+            }
+        }
+
+        stage('XUnit test Открытие форм') {
+            steps {
+                script {
+                    cmd("\"${PLATFORM_1C}\" ENTERPRISE /F \"${PROJECT_IB_CATALOG}\" /DisableStartupMessages /DisableStartupDialogs /C\"xddConfig \"\"${SMOKE_TEST_JSON}\"\" ; xddRun ЗагрузчикКаталога \"\"${SMOKE_TEST}\"\"; xddReport ОтчетОтсутствиеОшибокMXL \"\"${SMOKE_TEST_REPORT}\"\"; xddShutdown" /TESTMANAGER /Execute \"${TEST_RUNNER}\")
                 }
             }
         }
