@@ -132,7 +132,7 @@ pipeline {
         stage('XUnit test Открытие форм') {
             steps {
                 script {
-                    cmd("\"${PLATFORM_1C}\" ENTERPRISE /F \"${PROJECT_IB_CATALOG}\" /DisableStartupMessages /DisableStartupDialogs /C\"xddConfig \"\"${SMOKE_TEST_JSON}\"\" ; xddRun ЗагрузчикКаталога \"\"${SMOKE_TEST}\"\"; xddReport ОтчетОтсутствиеОшибокMXL \"\"${SMOKE_TEST_REPORT}\"\"; xddShutdown\" /TESTMANAGER /Execute \"${TEST_RUNNER}\")
+                    cmd("\"${PLATFORM_1C}\" ENTERPRISE /F \"${PROJECT_IB_CATALOG}\" /DisableStartupMessages /DisableStartupDialogs /C\"xddConfig \"\"${SMOKE_TEST_JSON}\"\" ; xddRun ЗагрузчикКаталога \"\"${SMOKE_TEST}\"\"; xddReport ОтчетОтсутствиеОшибокMXL \"\"${SMOKE_TEST_REPORT}\"\"; xddShutdown\" /TESTMANAGER /Execute \"${TEST_RUNNER}\"")
                 }
             }
         }
