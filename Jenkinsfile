@@ -63,10 +63,13 @@ pipeline {
                     SMOKE_TEST = "${ADD}\\tests\\smoke"
                     TEST_RUNNNER = "${ADD}\\xddTestRunner.epf"
 
-                    if (!telegram_channel.isEmpty() ) {
+                    /*if (!telegram_channel.isEmpty() ) {
                         telegramSend(message: "Jenkins build started: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL})", chatId: -1001247906636)
                     } else {telegramSend(message: "Jenkins build started 2: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL})", chatId: -1001247906636)}
-
+                    */
+                     dir('Repo') {
+                        deleteDir()
+                    }
                     dir('IB') {
                         deleteDir()
                     }
