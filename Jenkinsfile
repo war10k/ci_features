@@ -53,6 +53,7 @@ pipeline {
                     EDT_VALIDATION_RESULT = "${TEMP_CATALOG}\\edt-result.csv"
                     PROJECT_XML_CATALOG = "${CURRENT_CATALOG}\\XML"
                     PROJECT_IB_CATALOG = "${CURRENT_CATALOG}\\IB"
+                    PROJECT_LOG_CATALOG = "${CURRENT_CATALOG}\\LOG"
                     CURRENT_CATALOG = "${CURRENT_CATALOG}\\Repo"
                     PROJECT_NAME_EDT = "${CURRENT_CATALOG}\\${PROJECT_NAME}"
                     PLATFORM_1C = "C:\\Program Files\\1cv8\\${platfor1c}\\bin\\1cv8.exe"
@@ -61,7 +62,7 @@ pipeline {
                     SMOKE_TEST_JSON = "${ADD}\\tests\\smoke\\smoke.bsp.json"
                     SMOKE_TEST_REPORT = "${TEMP_CATALOG}\\Reports\\resultopenform.xlsx"
                     SMOKE_TEST = "${ADD}\\tests\\smoke"
-                    TEST_RUNNNER = "${ADD}\\xddTestRunner.epf"
+                    TEST_RUNNER = "${ADD}\\xddTestRunner.epf"
 
                     /*if (!telegram_channel.isEmpty() ) {
                         telegramSend(message: "Jenkins build started: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL})", chatId: -1001247906636)
@@ -99,10 +100,10 @@ pipeline {
                     if (fileExists("${EDT_VALIDATION_RESULT}")) {
                         cmd("@DEL \"${EDT_VALIDATION_RESULT}\"")
                     }
-                    /*cmd("""
+                    cmd("""
                     @set RING_OPTS=-Dfile.encoding=UTF-8 -Dosgi.nl=ru
                     ring edt@${EDT_VERSION} workspace validate --workspace-location \"${TEMP_CATALOG}\" --file \"${EDT_VALIDATION_RESULT}\" --project-list \"${PROJECT_NAME_EDT}\"
-                    """)*/
+                    """)
                 }
             }
         }
@@ -120,7 +121,7 @@ pipeline {
         stage('Создание пустой базы') {
             steps {
                 script {
-                    cmd("\"${PLATFORM_1C}\" CREATEINFOBASE File=\"${PROJECT_IB_CATALOG}\" /DumpResult \"${TEMP_CATALOG}\\log.txt\"")
+                    cmd("\"${PLATFORM_1C}\" CREATEINFOBASE File=\"${PROJECT_IB_CATALOG}\" /DumpResult \"${PROJECT_LOG_CATALOG}\\log.txt\"")
                 }
             }
         }
@@ -128,7 +129,7 @@ pipeline {
          stage('Загрузка из XML') {
             steps {
                 script {
-                    cmd("\"${PLATFORM_1C}\" DESIGNER /F \"${PROJECT_IB_CATALOG}\" /LoadConfigFromFiles \"${PROJECT_XML_CATALOG}\" /UpdateDBCfg /DisableStartupDialogs /DumpResult \"${TEMP_CATALOG}\\log.txt\"")
+                    cmd("\"${PLATFORM_1C}\" DESIGNER /F \"${PROJECT_IB_CATALOG}\" /LoadConfigFromFiles \"${PROJECT_XML_CATALOG}\" /UpdateDBCfg /DisableStartupDialogs /DumpResult \"${PROJECT_LOG_CATALOG}\\log.txt\"")
                 }
             }
         }
@@ -136,7 +137,7 @@ pipeline {
          stage('Создание файла поставки') {
             steps {
                 script {
-                    cmd("\"${PLATFORM_1C}\" DESIGNER /F \"${PROJECT_IB_CATALOG}\" /CreateDistributionFiles -cffile \"${NIGHT_BUILD_CATALOG}\" /DisableStartupDialogs /DumpResult \"${TEMP_CATALOG}\\log.txt\"")
+                    cmd("\"${PLATFORM_1C}\" DESIGNER /F \"${PROJECT_IB_CATALOG}\" /CreateDistributionFiles -cffile \"${NIGHT_BUILD_CATALOG}\" /DisableStartupDialogs /DumpResult \"${PROJECT_LOG_CATALOG}\\log.txt\"")
                 }
             }
         }
@@ -149,7 +150,7 @@ pipeline {
             }
         }
     }
-    /* post {
+     post {
         always {
             script {
                 dir ('temp') {
@@ -160,7 +161,7 @@ pipeline {
                     }
             }
         }
-    }*/
+    }
 }
 
 def cmd(command) {
