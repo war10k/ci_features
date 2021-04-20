@@ -117,17 +117,26 @@ pipeline {
             }
         }
 
-        stage('Создание файла поставки') {
+        stage('Создание пустой базы') {
             steps {
                 script {
                     cmd("\"${PLATFORM_1C}\" CREATEINFOBASE File=\"${PROJECT_IB_CATALOG}\" /DumpResult \"${TEMP_CATALOG}\\log.txt\"")
-                    cmd("\"${PLATFORM_1C}\" DESIGNER /F \"${PROJECT_IB_CATALOG}\" /LoadConfigFromFiles \"${PROJECT_XML_CATALOG}\" /UpdateDBCfg /DisableStartupDialogs /DumpResult \"${TEMP_CATALOG}\\log.txt\"")
-                    cmd("\"${PLATFORM_1C}\" DESIGNER /F \"${PROJECT_IB_CATALOG}\" /CreateDistributionFiles -cffile \"${NIGHT_BUILD_CATALOG}\" /DisableStartupDialogs /DumpResult \"${TEMP_CATALOG}\\log.txt\"")
-                
+                }
+            }
+        }
 
-                    if (!telegram_channel.isEmpty() ) {
-                        telegramSend(message: "Jenkins build end: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL}) STATUS: [${currentBuild.result}]", chatId: -1001247906636)
-                    }
+         stage('Загрузка из XML') {
+            steps {
+                script {
+                    cmd("\"${PLATFORM_1C}\" DESIGNER /F \"${PROJECT_IB_CATALOG}\" /LoadConfigFromFiles \"${PROJECT_XML_CATALOG}\" /UpdateDBCfg /DisableStartupDialogs /DumpResult \"${TEMP_CATALOG}\\log.txt\"")
+                }
+            }
+        }
+
+         stage('Создание файла поставки') {
+            steps {
+                script {
+                    cmd("\"${PLATFORM_1C}\" DESIGNER /F \"${PROJECT_IB_CATALOG}\" /CreateDistributionFiles -cffile \"${NIGHT_BUILD_CATALOG}\" /DisableStartupDialogs /DumpResult \"${TEMP_CATALOG}\\log.txt\"")
                 }
             }
         }
@@ -146,6 +155,9 @@ pipeline {
                 dir ('temp') {
                     deleteDir()
                 }
+                /*if (!telegram_channel.isEmpty() ) {
+                        telegramSend(message: "Jenkins build end: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL}) STATUS: [${currentBuild.result}]", chatId: -1001247906636)
+                    }*/
             }
         }
     }
