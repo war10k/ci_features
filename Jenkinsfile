@@ -152,9 +152,9 @@ pipeline {
     post {
         always {
             script {
-                dir ('temp') {
+                /*dir ('temp') {
                     deleteDir()
-                }
+                }*/
                 /*if (!telegram_channel.isEmpty() ) {
                         telegramSend(message: "Jenkins build end: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL}) STATUS: [${currentBuild.result}]", chatId: -1001247906636)
                     }*/
