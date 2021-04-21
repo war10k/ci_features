@@ -54,15 +54,18 @@ pipeline {
                     PROJECT_XML_CATALOG = "${CURRENT_CATALOG}\\XML"
                     PROJECT_IB_CATALOG = "${CURRENT_CATALOG}\\IB"
                     PROJECT_LOG_CATALOG = "${CURRENT_CATALOG}\\LOG"
+                    
+                    ADD = "C:\\CI\\add-6.7"
+                    SMOKE_TEST_JSON = "${ADD}\\tests\\smoke\\smoke.bsp.json"
+                    SMOKE_TEST_REPORT = "${CURRENT_CATALOG}\\Reports\\resultopenform.xlsx"
+                    SMOKE_TEST = "${ADD}\\tests\\smoke"
+                    TEST_RUNNER = "${ADD}\\xddTestRunner.epf"
+
                     CURRENT_CATALOG = "${CURRENT_CATALOG}\\Repo"
                     PROJECT_NAME_EDT = "${CURRENT_CATALOG}\\${PROJECT_NAME}"
                     PLATFORM_1C = "C:\\Program Files\\1cv8\\${platfor1c}\\bin\\1cv8.exe"
                     NIGHT_BUILD_CATALOG = "D:\\Data\\управление карьером\\ПОСТАВКИ\\ГДП ОУ\\_NightBuild\\1Cv8.cf"
-                    ADD = "C:\\CI\\add-6.7"
-                    SMOKE_TEST_JSON = "${ADD}\\tests\\smoke\\smoke.bsp.json"
-                    SMOKE_TEST_REPORT = "${TEMP_CATALOG}\\Reports\\resultopenform.xlsx"
-                    SMOKE_TEST = "${ADD}\\tests\\smoke"
-                    TEST_RUNNER = "${ADD}\\xddTestRunner.epf"
+                    
 
                     /*if (!telegram_channel.isEmpty() ) {
                         telegramSend(message: "Jenkins build started: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL})", chatId: -1001247906636)
